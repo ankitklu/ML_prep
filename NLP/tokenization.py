@@ -19,10 +19,14 @@ for sentence in documents:
 # paragraph into words
 # sentence into words
 print(word_tokenize(corpus))
+print("------------------------------------------------------------")
 print(type(word_tokenize(corpus)))
+print("------------------------------------------------------------")
 
 for word in word_tokenize(corpus):
     print(wordpunct_tokenize(word))
+
+print("--------------------------TREEBANK WORD TOKENIZER--------------------------------------")
 
 tokenizer= TreebankWordTokenizer()
 print(tokenizer.tokenize(corpus))
