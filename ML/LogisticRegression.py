@@ -2,7 +2,8 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.datasets import load_breast_cancer
 import pandas as pd
 from pandas import DataFrame
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, GridSearchCV
+from sklearn.metrics import classification_report, confusion_matrix
 
 # Load dataset
 cancer_data = load_breast_cancer()
@@ -10,7 +11,7 @@ X = pd.DataFrame(cancer_data['data'], columns=cancer_data['feature_names'])
 
 y = pd.DataFrame(cancer_data['target'], columns=['Target'])
 
-X_train, y_train, X_test, y_test = train_test_split(X,y, test_size = 0.33, random_state = 42)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.33, random_state = 42)
 
 print(X.head())
 print(y)
@@ -24,6 +25,8 @@ model1= LogisticRegression(C=100, max_iter=100)
 
 model = GridSearchCV(model1, param_grid=params,scoring='f1', cv=5)
 model.fit(X_train, y_train)
+
+print(confusion_matrix(y_test, model.predict(X_test)))
 
 
 # 0. Goal of this code
