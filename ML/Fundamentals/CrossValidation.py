@@ -3,6 +3,8 @@ import pandas as pd
 from sklearn.model_selection import train_test_split, cross_val_score, GridSearchCV, StratifiedKFold
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import confusion_matrix, classification_report
+from sklearn.preprocessing import StandardScaler
+from svm import model_SVM
 
 # Load Titanic dataset
 titanic = sns.load_dataset('titanic')
@@ -24,3 +26,8 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
 
 scaler = StandardScaler()
 
+X_scaled = scaler.fit_transform(X)
+
+scores = cross_val_score(model_SVM, X_scaled, y, cv=5, scoring='accuracy')
+
+print(scores)
