@@ -4,6 +4,9 @@ from sklearn.model_selection import train_test_split, cross_val_score, GridSearc
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import confusion_matrix, classification_report
 from sklearn.preprocessing import StandardScaler
+
+import sys, os
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'Classification'))
 from svm import model_SVM
 
 # Load Titanic dataset
