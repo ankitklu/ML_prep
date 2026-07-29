@@ -5,6 +5,7 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.model_selection import GridSearchCV
+from sklearn.model_selection import RandomizedSearchCV
 
 df = sns.load_dataset('iris')
 print(df.head())
@@ -27,4 +28,6 @@ grid_search.fit(X_train, y_train)
 print("Best parameters: ", grid_search.cv_results_)
 
 print(pd.DataFrame(grid_search.cv_results_)[['param_n_neighbors', 'mean_test_score', 'std_test_score']])
+
+
 
