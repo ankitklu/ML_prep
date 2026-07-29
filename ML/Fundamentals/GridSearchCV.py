@@ -29,5 +29,7 @@ print("Best parameters: ", grid_search.cv_results_)
 
 print(pd.DataFrame(grid_search.cv_results_)[['param_n_neighbors', 'mean_test_score', 'std_test_score']])
 
+grid_search_randomized = RandomizedSearchCV(estimator=model_knn, param_distributions={'n_neighbors': [1, 3, 5, 7, 9]}, n_iter=3, cv=5)
+
 
 
