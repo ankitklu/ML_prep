@@ -3,6 +3,10 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import numpy as np
 
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler, OneHotEncoder, OrdinalEncoder, FunctionTransformer
+from sklearn.impute import SimpleImputer
+
 df = pd.read_csv('Student_Social_Media_And_Mental_Health_Impact.csv')
 
 #looking fro number of rows and columns in the dataset
@@ -18,13 +22,13 @@ order = ['Low', 'Medium', 'High', 'Very High']
 sns.boxplot(x=df['Stress_Level'], y=df['Mental_Health_Score'], order=order)
 # plt.show()
 
-df.duplicated().sum()
+# df.duplicated().sum()
 
 
-df.info()
+# df.info()
 
 # Reading this: Most columns look reasonable — but look closely at Physical_Activity_Hours: the minimum value is -0.4. Negative hours aren't physically possible, so this is a data-entry glitch, not a real value. We'll fix this properly in the Data Cleaning step below instead of ignoring it.
-df.describe()
+# df.describe()
 
 ## Before predicting anything, we need to understand the shape of what we're predicting.
 sns.histplot(df['Mental_Health_Score'], kde=True)
@@ -50,10 +54,10 @@ sns.scatterplot(x='Sleep_Hours_Per_Night', y='Mental_Health_Score', data=df)
 #4.6 — Most Used Platform (count)
 # A quick look at which platforms are most common in our dataset.
 
-df['Most_Used_Platform'].value_counts()
+# df['Most_Used_Platform'].value_counts()
 
-plt.figure(figsize=(8, 4))
-sns.countplot(x=df['Most_Used_Platform'], order=df['Most_Used_Platform'].value_counts().index)
+# plt.figure(figsize=(8, 4))
+# sns.countplot(x=df['Most_Used_Platform'], order=df['Most_Used_Platform'].value_counts().index)
 
 
 ## Checking Outliers
@@ -137,4 +141,65 @@ def group_countries(country):
         return 'Other'
 
 df['Grouped_country'] = df['Country'].apply(group_countries)
-print(df['Grouped_country'].value_counts())
+# print(df['Grouped_country'].value_counts())
+
+## 8. Encoding Strategy
+# Before we jump into code, let's decide how each categorical column should be encoded — this decision matters more than the code itself.
+
+# Stress_Level → Ordinal Encoding. Its categories have a real, meaningful order: Low < Medium < High < Very High. We already saw in EDA (section 4.3) that the score drops step by step as stress increases — encoding it as 0, 1, 2, 3 preserves that order for the model.
+# Gender, Academic_Level, Most_Used_Platform, Purpose_Of_Use, Country_Grouped → One-Hot Encoding. These categories have no natural order — "Instagram" isn't "greater than" "LinkedIn". One-hot encoding creates a separate 0/1 column per category so the model doesn't accidentally assume a false ranking.
+
+skewed_cols = ['Study_Hours']           ## We apply log transformation for skewed columns to make them more normally distributed. This can help some models perform better.
+other_numeric_cols = ['Age', 'Avg_Daily_Usage_Hours', 'Daily_Unlocks', 'Physical_Activity_Hours', 'Sleep_Hours_Per_Night']      ## These columns are already fairly normally distributed, so we will perform standard scaler
+ordinal_cols = ['Stress_Level']     ## Ordinal encoding for Stress_Level column as it has a natural order.
+normal_cols = ['Gender', 'Academic_Level', 'Most_Used_Platform', 'Purpose_Of_Use', 'Grouped_country']       ## One-hot encoding for these columns as they don't have a natural order.
+
+feature_col = skewed_cols + other_numeric_cols + ordinal_cols + normal_cols
+X = df[feature_col]
+y = df['Mental_Health_Score']
+
+## 10. Preprocessing using ColumnTransformer
+# Our columns need different treatment:
+
+# Study_Hours (the skewed one) → impute → log1p transform → scale
+# The other numeric columns → impute → scale (no skew to fix)
+# Stress_Level → impute → OrdinalEncoder with an explicit order
+# The nominal columns → impute → OneHotEncoder
+# We include a SimpleImputer in every branch even though this dataset has zero missing values right now — it's a safety net. Real-world data (and our future API's incoming requests) won't always be this clean, and a pipeline that assumes "no missing values ever" is a pipeline that breaks in production.
+
+# ColumnTransformer glues all of this into one object that applies the right transformation to the right column type in a single .fit() / .transform() call — no manual column-by-column juggling.
+
+# for each of the split we did in the above lines we will create seperate pipelines for each of them and then combine them using ColumnTransformer.
+
+# kewed Features
+skew_pipeline = Pipeline(steps=[
+    ('log_transform', FunctionTransformer(np.log1p)),
+    ('scaler', StandardScaler())
+])
+
+# Numeric Features
+plain_numeric_pipeline= Pipeline(steps=[
+    ('scaler', StandardScaler())
+])
+
+# Ordinal Features
+ordinal_pipeline = Pipeline(steps=[
+    ('ordinal', OrdinalEncoder(categories=[["Low", "Medium", "High", "Very High"]]))
+])
+# Normal features
+normal_pipeline = Pipeline(steps=[
+    ('onehot', OneHotEncoder(handle_unknown='ignore'))
+])
+
+print("All pipelines created")
+
+
+## (which_pipeline, which_feature)
+preprocessor = ColumnTransformer(transformers=[
+    ('skewed', skew_pipeline, skewed_cols),
+    ('numeric', plain_numeric_pipeline, other_numeric_cols),
+    ('ordinal', ordinal_pipeline, ordinal_cols),
+    ('normal', normal_pipeline, normal_cols)
+])
+
+
