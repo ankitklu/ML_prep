@@ -10,6 +10,7 @@ from sklearn.linear_model import LinearRegression
 from sklearn.compose import ColumnTransformer
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import r2_score, mean_squared_error, mean_absolute_error
+from sklearn.ensemble import RandomForestRegressor
 
 df = pd.read_csv('Student_Social_Media_And_Mental_Health_Impact.csv')
 
@@ -234,3 +235,36 @@ print(f"Linear Regression R2 Score on Testing Data: {lr_r2_testing:.4f}")
 print(f"Linear Regression R2 Score on Training Data: {lr_r2_train:.4f}")
 print(f"Linear Regression Mean Absolute Error: {lr_mae:.4f}")
 print(f"Linear Regression Mean Squared Error: {lr_mse:.4f}")
+
+## Results for Linear Regression
+# Linear Regression R2 Score on Testing Data: 0.7398
+# Linear Regression R2 Score on Training Data: 0.7237
+# Linear Regression Mean Absolute Error: 0.5362
+# Linear Regression Mean Squared Error: 0.4570
+
+
+rf_pipeline = Pipeline(steps=[
+    ('preprocessor', preprocessor),
+    ('random forest', RandomForestRegressor(random_state=42))
+])
+
+rf_pipeline.fit(X_train, y_train)
+
+rf_preds = rf_pipeline.predict(X_test)
+rf_preds_train = rf_pipeline.predict(X_train)
+
+rf_r2_testing= r2_score(y_test, rf_preds)
+rf_r2_train = r2_score(y_train, rf_preds_train)
+
+print(f"Random Forest R2 Score on Testing Data: {rf_r2_testing:.4f}")
+print(f"Random Forest R2 Score on Training Data: {rf_r2_train:.4f}")
+print(f"Random Forest Mean Absolute Error: {mean_absolute_error(y_test, rf_preds):.4f}")
+print(f"Random Forest Mean Squared Error: {mean_squared_error(y_test, rf_preds):.4f}")
+
+## Results for Random Forest
+# Random Forest R2 Score on Testing Data: 0.8780
+# Random Forest R2 Score on Training Data: 0.9809
+# Random Forest Mean Absolute Error: 0.3465
+# Random Forest Mean Squared Error: 0.2142
+
+
