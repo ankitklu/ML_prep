@@ -6,6 +6,10 @@ import numpy as np
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler, OneHotEncoder, OrdinalEncoder, FunctionTransformer
 from sklearn.impute import SimpleImputer
+from sklearn.linear_model import LinearRegression
+from sklearn.compose import ColumnTransformer
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import r2_score, mean_squared_error, mean_absolute_error
 
 df = pd.read_csv('Student_Social_Media_And_Mental_Health_Impact.csv')
 
@@ -158,6 +162,8 @@ feature_col = skewed_cols + other_numeric_cols + ordinal_cols + normal_cols
 X = df[feature_col]
 y = df['Mental_Health_Score']
 
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.30, random_state=42)
+
 ## 10. Preprocessing using ColumnTransformer
 # Our columns need different treatment:
 
@@ -202,4 +208,29 @@ preprocessor = ColumnTransformer(transformers=[
     ('normal', normal_pipeline, normal_cols)
 ])
 
+# 11. Build a Pipeline
+# Why Pipeline matters: a Pipeline chains preprocessing and the model into a single object. Calling .fit() once does both steps in the correct order, and calling .predict() on brand-new raw data automatically applies the exact same preprocessing that was used during training — no risk of forgetting a step or applying it inconsistently.
 
+# Why companies prefer this: when this model gets deployed (which we're doing in Part 2 with FastAPI), the API doesn't need to know anything about scaling, encoding, or log transforms — it just loads one saved pipeline object and calls .predict() on raw input. That's a huge reduction in what can go wrong in production.
+
+# We'll build two pipelines below — one per model — so we can fairly compare them.
+
+lr_pipeline = Pipeline(steps=[
+    ('preprocessor', preprocessor),
+    ('regressor', LinearRegression())
+])
+
+lr_pipeline.fit(X_train, y_train)
+lr_preds = lr_pipeline.predict(X_test)
+lr_preds_train = lr_pipeline.predict(X_train)
+
+lr_r2_testing= r2_score(y_test, lr_preds)
+lr_r2_train = r2_score(y_train, lr_preds_train)
+
+lr_mae = mean_absolute_error(y_test, lr_preds)
+lr_mse = mean_squared_error(y_test, lr_preds)
+
+print(f"Linear Regression R2 Score on Testing Data: {lr_r2_testing:.4f}")
+print(f"Linear Regression R2 Score on Training Data: {lr_r2_train:.4f}")
+print(f"Linear Regression Mean Absolute Error: {lr_mae:.4f}")
+print(f"Linear Regression Mean Squared Error: {lr_mse:.4f}")
