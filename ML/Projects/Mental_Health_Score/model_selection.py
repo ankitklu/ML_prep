@@ -1,3 +1,4 @@
+import joblib
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
@@ -11,6 +12,7 @@ from sklearn.compose import ColumnTransformer
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import r2_score, mean_squared_error, mean_absolute_error
 from sklearn.ensemble import RandomForestRegressor
+from sklearn.model_selection import RandomizedSearchCV
 
 df = pd.read_csv('Student_Social_Media_And_Mental_Health_Impact.csv')
 
@@ -231,10 +233,10 @@ lr_r2_train = r2_score(y_train, lr_preds_train)
 lr_mae = mean_absolute_error(y_test, lr_preds)
 lr_mse = mean_squared_error(y_test, lr_preds)
 
-print(f"Linear Regression R2 Score on Testing Data: {lr_r2_testing:.4f}")
-print(f"Linear Regression R2 Score on Training Data: {lr_r2_train:.4f}")
-print(f"Linear Regression Mean Absolute Error: {lr_mae:.4f}")
-print(f"Linear Regression Mean Squared Error: {lr_mse:.4f}")
+# print(f"Linear Regression R2 Score on Testing Data: {lr_r2_testing:.4f}")
+# print(f"Linear Regression R2 Score on Training Data: {lr_r2_train:.4f}")
+# print(f"Linear Regression Mean Absolute Error: {lr_mae:.4f}")
+# print(f"Linear Regression Mean Squared Error: {lr_mse:.4f}")
 
 ## Results for Linear Regression
 # Linear Regression R2 Score on Testing Data: 0.7398
@@ -256,10 +258,10 @@ rf_preds_train = rf_pipeline.predict(X_train)
 rf_r2_testing= r2_score(y_test, rf_preds)
 rf_r2_train = r2_score(y_train, rf_preds_train)
 
-print(f"Random Forest R2 Score on Testing Data: {rf_r2_testing:.4f}")
-print(f"Random Forest R2 Score on Training Data: {rf_r2_train:.4f}")
-print(f"Random Forest Mean Absolute Error: {mean_absolute_error(y_test, rf_preds):.4f}")
-print(f"Random Forest Mean Squared Error: {mean_squared_error(y_test, rf_preds):.4f}")
+# print(f"Random Forest R2 Score on Testing Data: {rf_r2_testing:.4f}")
+# print(f"Random Forest R2 Score on Training Data: {rf_r2_train:.4f}")
+# print(f"Random Forest Mean Absolute Error: {mean_absolute_error(y_test, rf_preds):.4f}")
+# print(f"Random Forest Mean Squared Error: {mean_squared_error(y_test, rf_preds):.4f}")
 
 ## Results for Random Forest
 # Random Forest R2 Score on Testing Data: 0.8780
@@ -268,3 +270,31 @@ print(f"Random Forest Mean Squared Error: {mean_squared_error(y_test, rf_preds):
 # Random Forest Mean Squared Error: 0.2142
 
 
+param_grid = {
+    'random forest__n_estimators': [100, 200, 300],
+    'random forest__max_depth': [None, 10, 20, 30],
+    'random forest__min_samples_split': [2, 5, 10],
+    'random forest__min_samples_leaf': [1, 2, 4],
+}
+random_search = RandomizedSearchCV(estimator=rf_pipeline,
+                                   param_distributions=param_grid,
+                                   n_iter=10,
+                                   cv=5,
+                                   scoring='r2',
+                                   random_state=42,
+                                   )
+
+random_search.fit(X_train, y_train)
+# print(f"Best parameters: {random_search.best_params_}")
+
+# Best parameters: {'random forest__n_estimators': 300, 'random forest__min_samples_split': 2, 'random forest__min_samples_leaf': 1, 'random forest__max_depth': 30}
+
+rf_best_pipeline = random_search.best_estimator_
+rf_best_preds = rf_best_pipeline.predict(X_test)
+
+# print(f"Random Forest (Best) R2 Score on Testing Data: {r2_score(y_test, rf_best_preds):.4f}")
+# print(f"Random Forest (Best) Mean Absolute Error: {mean_absolute_error(y_test, rf_best_preds):.4f}")
+# print(f"Random Forest (Best) Mean Squared Error: {mean_squared_error(y_test, rf_best_preds):.4f}")
+
+joblib.dump(rf_pipeline, 'mental_health_model.pkl')
+print("Model saved as mental_health_model.pkl")
