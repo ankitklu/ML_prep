@@ -3,6 +3,7 @@ import tensorflow as tf
 from tensorflow import keras
 from sklearn.model_selection import train_test_split
 from tensorflow.keras import layers
+from tensorflow.keras import optimizers
 import pandas as pd
 
 df = pd.DataFrame({
@@ -35,12 +36,20 @@ model = keras.Sequential([
     layers.Dense(1, activation='sigmoid')
 ])
 
-model.compile(optimizer='sgd', loss='binary_crossentropy', metrics=['accuracy'])
+# model.compile(optimizer='sgd', loss='binary_crossentropy', metrics=['accuracy'])
+
+# history = model.fit(
+#     X_train.values, y_train.values,
+#     validation_data = (X_test.values, y_test.values), ## validation_data is not used directly for learning, only for monitoring performance during training
+#     epochs = 100, batch_size=4, verbose=1
+# )
+
+opt = optimizers.SGD(learning_rate=0.01, momentum=0.9)
+
+model.compile(optimizer=opt, loss='binary_crossentropy', metrics=['accuracy'])
 
 history = model.fit(
     X_train.values, y_train.values,
-    validation_data = (X_test.values, y_test.values),
+    validation_data = (X_test.values, y_test.values), ## validation_data is not used directly for learning, only for monitoring performance during training
     epochs = 100, batch_size=4, verbose=1
 )
-
-
