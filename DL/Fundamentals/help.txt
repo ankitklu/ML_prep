@@ -1,0 +1,16 @@
+Create the venv (Python 3.12, since tensorflow doesn't support 3.13):
+cd /Users/ankit.mishra.in/ML_prep/DL/Fundamentals
+python3.12 -m venv .venv
+
+Activate it and install dependencies:
+source .venv/bin/activate
+pip install --upgrade pip
+pip install tensorflow numpy pandas matplotlib seaborn scikit-learn
+
+Run the script:
+python ann.py
+Next time, since the venv already exists, you only need:
+
+cd /Users/ankit.mishra.in/ML_prep/DL/Fundamentals
+source .venv/bin/activate
+python ann.py
