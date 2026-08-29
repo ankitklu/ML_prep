@@ -1,0 +1,7 @@
+tensorflow==2.20.0
+keras==3.10.0
+numpy==2.0.2
+pandas==2.3.3
+seaborn==0.13.2
+matplotlib==3.9.4
+h5py==3.14.0
