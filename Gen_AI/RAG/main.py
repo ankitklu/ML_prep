@@ -1,7 +1,6 @@
 from dotenv import load_dotenv
 from langchain_community.vectorstores import Chroma
-from langchain_google_genai import GoogleGenerativeAIEmbeddings
-from langchain_mistralai import ChatMistralAI
+from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_core.documents import Document
 from langchain_core.prompts import ChatPromptTemplate
@@ -25,7 +24,7 @@ retriever = vectorstore.as_retriever(
     }
 )
 
-llm = ChatMistralAI(model="mistral-small-2506")
+llm = ChatGoogleGenerativeAI(model="gemini-3.6-flash")
 
 
 #prompt template for the LLM to generate a response based on the retrieved documents
